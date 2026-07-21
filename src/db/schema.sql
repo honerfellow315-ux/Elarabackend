@@ -2,6 +2,7 @@
 -- Run once via: npm run db:migrate
 
 create extension if not exists pgcrypto;
+create extension if not exists citext;
 
 -- ---------------------------------------------------------------- users --
 create table if not exists users (
