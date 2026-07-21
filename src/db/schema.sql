@@ -18,8 +18,6 @@ create table if not exists users (
   updated_at     timestamptz not null default now()
 );
 
--- citext extension for case-insensitive emails
-create extension if not exists citext;
 
 -- ------------------------------------------------------------ otp_codes --
 -- purpose: 'register' | 'password_reset' | 'password_change'
