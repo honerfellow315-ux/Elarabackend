@@ -34,9 +34,11 @@ export const env = {
   JWT_USER_EXPIRES_IN: optional("JWT_USER_EXPIRES_IN", "7d"),
   JWT_ADMIN_EXPIRES_IN: optional("JWT_ADMIN_EXPIRES_IN", "12h"),
 
-  // Brevo (Sendinblue) transactional email — used for OTP + reset emails
-  BREVO_API_KEY: required("BREVO_API_KEY"),
-  BREVO_SENDER_EMAIL: required("BREVO_SENDER_EMAIL"),
+  // Brevo (Sendinblue) transactional email — used for OTP + reset emails.
+  // Optional now that user login/register is disabled; if unset, email
+  // sending simply won't work (fine, since nothing calls it anymore).
+  BREVO_API_KEY: optional("BREVO_API_KEY", ""),
+  BREVO_SENDER_EMAIL: optional("BREVO_SENDER_EMAIL", ""),
   BREVO_SENDER_NAME: optional("BREVO_SENDER_NAME", "ELARA WAVE"),
 
   // Hugging Face Inference API — powers the "Enhance with AI" bottle
