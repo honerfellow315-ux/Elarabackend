@@ -61,7 +61,7 @@ app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 app.get("/health", (req, res) => res.json({ ok: true, service: "elarawave-backend" }));
 
 // --------------------------------------------------------------- routes --
-app.use("/api/auth", authRouter);
+// // app.use("/api/auth", authRouter);   // client ne mana kiya — user login/register filhal band   // client ne mana kiya — user login/register filhal band
 app.use("/api/admin/auth", adminAuthRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/products", productsRouter);
