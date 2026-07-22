@@ -4,6 +4,7 @@ import { pool } from "../db/pool.js";
 import { validateBody } from "../utils/validate.js";
 import { authLimiter, aiGenerateLimiter } from "../middleware/rateLimit.js";
 import { generateBottleMockup } from "../utils/aiImage.js";
+import { fetchGoogleReviews } from "../utils/googleReviews.js";
 
 export const contactRouter = Router();
 export const newsletterRouter = Router();
@@ -85,15 +86,48 @@ seoRouter.get("/", async (req, res, next) => {
 });
 
 // --------------------------------------------------------------- reviews --
+// Returns Google reviews (real, live, pulled from the business's Google
+// listing) merged with approved site-submitted reviews, newest first. If
+// Google isn't configured yet (no API key / Place ID), or the Google call
+// fails for any reason, we just fall back to site reviews only — this
+// endpoint never breaks because of Google being down/unconfigured.
 reviewsRouter.get("/", async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       "select * from reviews where approved = true order by review_date desc limit 200",
     );
-    res.json(rows.map((r) => ({
+    const siteReviews = rows.map((r) => ({
       id: r.id, author: r.author, avatar: r.avatar, rating: r.rating,
       date: r.review_date, text: r.text, source: r.source,
-    })));
+    }));
+
+    let googleReviews = [];
+    try {
+      const g = await fetchGoogleReviews();
+      googleReviews = g.reviews;
+    } catch (err) {
+      // Log and continue with site reviews only — a Google hiccup should
+      // never take the reviews section down.
+      console.error("[reviews] Google Places fetch failed:", err.message);
+    }
+
+    const merged = [...googleReviews, ...siteReviews].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+
+    res.json(merged);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Small aggregate endpoint (overall Google rating + review count) in case
+// the frontend wants a "4.8 ★ from 230 Google reviews" style badge above
+// the review cards. Safe to ignore if not used.
+reviewsRouter.get("/summary", async (req, res, next) => {
+  try {
+    const g = await fetchGoogleReviews().catch(() => ({ configured: false, rating: null, totalReviews: null }));
+    res.json({ googleRating: g.rating, googleTotalReviews: g.totalReviews, configured: g.configured });
   } catch (err) {
     next(err);
   }

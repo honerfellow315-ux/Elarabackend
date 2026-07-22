@@ -87,6 +87,41 @@ tune that if needed. To wire the frontend up, replace the stub's body in
 `generateWithAI()` with a `fetch("<API_BASE_URL>/api/customizer/generate", { method: "POST", ... })`
 call and return `data.images`.
 
+## Live Google reviews on the site ("Google Reviews" section)
+
+`GET /api/reviews` now merges the business's **real, live Google reviews**
+with site-submitted reviews (newest first). This uses the Google Places
+API (Place Details, `reviews` field) — same key style as the AI feature
+above:
+
+1. Go to console.cloud.google.com → create or select a project.
+2. **APIs & Services → Library** → enable **"Places API"**.
+3. **APIs & Services → Credentials → Create Credentials → API key.**
+   Restrict it (API restrictions → Places API only) so it's useless to
+   anyone even if it leaks.
+4. Find the client's **Place ID** (a string like `ChIJ...`) using Google's
+   finder tool: https://developers.google.com/maps/documentation/places/web-service/place-id
+   — search the exact business name + address, copy the Place ID shown.
+5. Set both in Render's Environment tab:
+   ```
+   GOOGLE_PLACES_API_KEY=your_key_here
+   GOOGLE_PLACE_ID=the_place_id_here
+   ```
+
+If either is left blank, this is completely safe — the endpoint just
+returns site-submitted reviews only, no error, nothing else affected.
+Results are cached in memory for `GOOGLE_REVIEWS_CACHE_MINUTES` (default
+60) so we don't burn API quota on every page load.
+
+**Important limitation (this is Google's limit, not ours):** the Places
+API only ever returns up to **5 reviews** per business, no matter the
+plan or key. If the client wants literally all their Google reviews shown,
+that's not possible through this API — 5 is the hard cap Google imposes.
+
+There's also a bonus `GET /api/reviews/summary` endpoint returning
+`{ googleRating, googleTotalReviews, configured }` in case the frontend
+later wants a "4.8★ from 230 Google reviews" badge above the cards.
+
 ## Security notes
 
 - Passwords hashed with bcrypt (cost 12, tunable via `BCRYPT_COST`).

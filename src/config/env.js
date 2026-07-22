@@ -47,6 +47,16 @@ export const env = {
   HUGGINGFACE_API_KEY: optional("HUGGINGFACE_API_KEY", ""),
   HUGGINGFACE_MODEL: optional("HUGGINGFACE_MODEL", "black-forest-labs/FLUX.1-schnell"),
 
+  // Google Places API — pulls the business's real Google reviews into
+  // GET /api/reviews (merged with site-submitted reviews). Optional: if
+  // either is unset, the endpoint simply skips Google and returns only
+  // site reviews (no error, nothing breaks).
+  GOOGLE_PLACES_API_KEY: optional("GOOGLE_PLACES_API_KEY", ""),
+  GOOGLE_PLACE_ID: optional("GOOGLE_PLACE_ID", ""),
+  // How long fetched Google reviews are cached in memory before
+  // re-fetching. Keeps us from burning API quota on every page load.
+  GOOGLE_REVIEWS_CACHE_MINUTES: Number(optional("GOOGLE_REVIEWS_CACHE_MINUTES", "60")),
+
 
   // Frontend origin(s) allowed to call this API (comma separated)
   FRONTEND_URL: required("FRONTEND_URL"),
